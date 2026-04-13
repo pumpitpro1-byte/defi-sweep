@@ -1,0 +1,307 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* dark theme removed — app is light-mode only */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RainbowKit Modal Overrides — Matching Figma (node 26:158)
+   Frosted glass card: 24px radius, backdrop-blur, subtle border
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- ALL modal containers --- */
+[data-rk] [role="dialog"],
+[data-rk] div[class*="ModalContent"],
+[data-rk] div[class*="DialogContent"] {
+  font-family: var(--font-sans), 'Red Hat Text', sans-serif !important;
+  border-radius: 24px !important;
+  border: 0.634px solid #d6d6d6 !important;
+  box-shadow: 0px 0px 40px 0px rgba(0,0,0,0.12) !important;
+  background: linear-gradient(90deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.02) 100%),
+              linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.9) 100%) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  overflow: hidden !important;
+  padding: 16px !important;
+}
+
+/* --- Backdrop overlay --- */
+[data-rk] div[class*="ModalOverlay"],
+[data-rk] div[class*="DialogOverlay"],
+[data-rk] [aria-hidden="true"] {
+  background: rgba(0,0,0,0.3) !important;
+}
+
+/* --- All text inside modals: Red Hat Text --- */
+[data-rk] [role="dialog"] *,
+[data-rk] div[class*="ModalContent"] * {
+  font-family: var(--font-sans), 'Red Hat Text', sans-serif !important;
+  letter-spacing: -0.28px !important;
+}
+
+/* --- Modal header: "Switch network" / "Connect" title --- */
+[data-rk] [role="dialog"] h1,
+[data-rk] [role="dialog"] h2,
+[data-rk] [role="dialog"] h3,
+[data-rk] div[class*="ModalContent"] h1 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #222 !important;
+  letter-spacing: -0.32px !important;
+  line-height: 1.46 !important;
+}
+
+/* --- Close button (X) — small, subtle, 6px radius --- */
+[data-rk] [role="dialog"] button[aria-label="Close"],
+[data-rk] button[class*="CloseButton"] {
+  background: rgba(242,242,242,0.2) !important;
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  border-radius: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  padding: 6px !important;
+  color: #222 !important;
+  transition: background 200ms ease !important;
+  box-shadow: none !important;
+}
+
+[data-rk] [role="dialog"] button[aria-label="Close"]:hover,
+[data-rk] button[class*="CloseButton"]:hover {
+  background: #f2f2f2 !important;
+}
+
+/* --- Chain/network list items (10px radius, 4px padding) --- */
+[data-rk] [role="dialog"] button[class*="ChainOption"],
+[data-rk] [role="dialog"] div[class*="ChainOption"],
+[data-rk] [role="menuitem"],
+[data-rk] [role="option"],
+[data-rk] [data-testid*="chain"] {
+  border-radius: 10px !important;
+  padding: 4px 4px !important;
+  margin: 0 !important;
+  transition: background 200ms ease !important;
+  border: none !important;
+}
+
+[data-rk] [role="menuitem"]:hover,
+[data-rk] [role="option"]:hover,
+[data-rk] [data-testid*="chain"]:hover {
+  background: rgba(108,108,255,0.06) !important;
+}
+
+/* --- Chain item text: Medium 14px --- */
+[data-rk] [role="menuitem"] span,
+[data-rk] [role="option"] span,
+[data-rk] [data-testid*="chain"] span {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #121212 !important;
+  letter-spacing: -0.28px !important;
+  line-height: 1.46 !important;
+}
+
+/* --- Active/connected chain: purple tint bg + border --- */
+[data-rk] [role="dialog"] button[data-selected="true"],
+[data-rk] [role="dialog"] [aria-selected="true"],
+[data-rk] [role="dialog"] div[class*="SelectedChain"],
+[data-rk] [role="dialog"] button[class*="SelectedChain"] {
+  background: rgba(108,108,255,0.1) !important;
+  border: 1px solid rgba(108,108,255,0.2) !important;
+  border-radius: 10px !important;
+}
+
+/* --- Connected indicator text + green dot --- */
+[data-rk] [data-testid*="connected"],
+[data-rk] div[class*="Connected"] {
+  color: #5a8400 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.24px !important;
+}
+
+/* --- Dividers between chain items --- */
+[data-rk] [role="dialog"] hr,
+[data-rk] [role="dialog"] [role="separator"],
+[data-rk] [role="dialog"] div[class*="Separator"] {
+  border-color: #f0f0f0 !important;
+  opacity: 1 !important;
+  margin: 3px 0 !important;
+}
+
+/* --- Wallet list items (connect modal) --- */
+[data-rk] [data-testid="rk-wallet-option"] {
+  border-radius: 10px !important;
+  border: none !important;
+  padding: 4px 4px !important;
+  transition: background 200ms ease !important;
+}
+
+[data-rk] [data-testid="rk-wallet-option"]:hover {
+  background: rgba(108,108,255,0.06) !important;
+}
+
+[data-rk] [data-testid="rk-wallet-option"] div {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #121212 !important;
+}
+
+/* --- Primary CTA buttons --- */
+[data-rk] [role="dialog"] button[data-testid*="rk-connect"],
+[data-rk] [role="dialog"] button[data-testid*="get-wallet"] {
+  border-radius: 32px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  background: #6c6cff !important;
+  color: white !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  transition: background 200ms ease !important;
+}
+
+[data-rk] [role="dialog"] button[data-testid*="rk-connect"]:hover,
+[data-rk] [role="dialog"] button[data-testid*="get-wallet"]:hover {
+  background: #5b5be6 !important;
+}
+
+/* --- All other buttons in modals: semibold --- */
+[data-rk] [role="dialog"] button {
+  font-weight: 600 !important;
+}
+
+/* --- Account modal --- */
+[data-rk] [data-testid="rk-account-modal"] {
+  border-radius: 24px !important;
+}
+
+[data-rk] [data-testid="rk-account-modal-disconnect-button"],
+[data-rk] [data-testid="rk-account-modal-explorer-button"] {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 4px 4px !important;
+}
+
+/* --- Profile actions in account modal --- */
+[data-rk] div[class*="ProfileAction"] {
+  border-radius: 10px !important;
+  transition: background 200ms ease !important;
+}
+
+[data-rk] div[class*="ProfileAction"]:hover {
+  background: rgba(108,108,255,0.06) !important;
+}
+
+/* --- Links --- */
+[data-rk] [role="dialog"] a {
+  color: #6c6cff !important;
+  font-weight: 500 !important;
+}
+
+[data-rk] [role="dialog"] a:hover {
+  color: #5b5be6 !important;
+}
+
+/* --- Error states --- */
+[data-rk] [data-testid*="error"] {
+  color: #e62e24 !important;
+}
+
+/* --- Remove any default RainbowKit shadows on inner elements --- */
+[data-rk] [role="dialog"] > div {
+  box-shadow: none !important;
+}
