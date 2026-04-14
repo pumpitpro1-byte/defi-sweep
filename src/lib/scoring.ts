@@ -176,6 +176,7 @@ export function mockScorePosition(
       symbol: t.tokenSymbol,
       amount: t.coinAmount,
       valueUsd: t.currencyAmount,
+      address: t.tokenAddress,
     })),
     totalValueUsd: totalValue,
     healthScore: score,

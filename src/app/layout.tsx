@@ -20,10 +20,54 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://defi-sweeper.vercel.app";
+
 export const metadata: Metadata = {
-  title: "DeFi Sweeper — Find & Recover Forgotten DeFi Positions",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "DeFi Sweeper — Find & Recover Forgotten DeFi Positions",
+    template: "%s · DeFi Sweeper",
+  },
   description:
-    "AI agent that scans your wallet for stale DeFi positions, scores their health, and executes one-click cleanup on X Layer.",
+    "AI agent that scans your wallet for stale DeFi positions, scores their health 0–100, and executes one-click cleanup on X Layer.",
+  applicationName: "DeFi Sweeper",
+  keywords: [
+    "DeFi",
+    "X Layer",
+    "OKX",
+    "wallet scanner",
+    "stale positions",
+    "yield optimization",
+    "AI agent",
+    "liquidity pools",
+    "staking",
+    "one-click cleanup",
+  ],
+  authors: [{ name: "DeFi Sweeper" }],
+  creator: "DeFi Sweeper",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "DeFi Sweeper",
+    title: "DeFi Sweeper — Find & Recover Forgotten DeFi Positions",
+    description:
+      "Scan your wallet for stale DeFi positions, get AI-scored health, and clean them up in one click on X Layer.",
+    images: [{ url: "/hero-image.svg", width: 1200, height: 630, alt: "DeFi Sweeper" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DeFi Sweeper",
+    description:
+      "AI agent that finds and recovers your forgotten DeFi positions on X Layer.",
+    images: ["/hero-image.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({

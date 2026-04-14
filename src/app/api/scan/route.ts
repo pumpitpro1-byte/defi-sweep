@@ -4,7 +4,13 @@ import {
   getDefiPositionDetail,
   isOkxConfigured,
 } from "@/lib/okx-api";
+import {
+  cliGetDefiPositions,
+  cliGetDefiPositionDetail,
+  isOnchainosAvailable,
+} from "@/lib/onchainos-cli";
 import { mockScorePosition } from "@/lib/scoring";
+import { enhanceWithAi, aiProviderName } from "@/lib/ai-enhance";
 import type {
   ScoredPosition,
   PositionDetail,
@@ -12,7 +18,30 @@ import type {
 } from "@/lib/types";
 import { getChainById } from "@/lib/chains";
 
-// Default chains to scan (EVM only — compatible with 0x addresses)
+type ApiLike = (address: string, chains: string[]) => Promise<unknown>;
+type DetailApiLike = (address: string, chain: string, platformId: string) => Promise<unknown>;
+
+// HMAC returns { code: "0", data: RawPosition[] }
+// CLI returns  { ok: true, data: RawPosition[] | {assetStatus,updateAt,walletIdPlatformList?} }
+// Normalize both shapes to { code, msg, data }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalize(r: any) {
+  if (!r) return { code: "-1", msg: "empty response", data: null };
+  if (r.code !== undefined) return r;
+  if (r.ok === true) {
+    // CLI success — wrap
+    const inner = r.data;
+    // CLI positions endpoint sometimes returns single overview object; wrap to array
+    if (inner && !Array.isArray(inner) && inner.walletIdPlatformList) {
+      return { code: "0", msg: "ok", data: [inner] };
+    }
+    return { code: "0", msg: "ok", data: Array.isArray(inner) ? inner : inner ? [inner] : [] };
+  }
+  return { code: "-1", msg: r.error || r.msg || "cli failed", data: null };
+}
+
+// Scan across all major EVM chains — users can hold stale positions anywhere.
+// The cleanup always routes funds INTO X Layer (the recommendation target).
 const DEFAULT_CHAIN_IDS = ["1", "56", "137", "42161", "8453", "196"];
 
 // ─── Demo fallback data ──────────────────────────────────────
@@ -121,7 +150,9 @@ function isValidEvmAddress(address: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { address, chains } = body;
+    const { address, chains, demo } = body;
+    const url = new URL(req.url);
+    const demoMode = demo === true || url.searchParams.get("demo") === "1";
 
     if (!address) {
       return NextResponse.json(
@@ -137,42 +168,89 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fall back to demo data if OKX API keys are not configured
-    if (!isOkxConfigured()) {
+    // Explicit demo mode only — no silent fallback
+    if (demoMode) {
       return NextResponse.json({
         ok: true,
         demo: true,
         positions: getDemoPositions(),
       });
+    }
+
+    const hmacConfigured = isOkxConfigured();
+    const cliAvailable = isOnchainosAvailable();
+
+    if (!hmacConfigured && !cliAvailable) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "No data source configured",
+          detail: "Set OKX_* env vars or install the onchainos CLI",
+        },
+        { status: 503 }
+      );
     }
 
     const chainIds = chains && chains.length > 0 ? chains : DEFAULT_CHAIN_IDS;
 
-    // Step 1: Get positions overview
-    let positionsResponse;
-    try {
-      positionsResponse = await getDefiPositions(address, chainIds);
-    } catch (err) {
-      console.error("OKX positions API error:", err);
-      return NextResponse.json({
-        ok: true,
-        demo: true,
-        positions: getDemoPositions(),
-      });
+    // Step 1: Get positions overview — HMAC first, CLI fallback
+    let positionsResponse: unknown;
+    let source: "hmac" | "cli" = "hmac";
+    let hmacErr: string | null = null;
+
+    const tryFetch = async (fn: ApiLike) => fn(address, chainIds);
+
+    if (hmacConfigured) {
+      try {
+        positionsResponse = normalize(await tryFetch(getDefiPositions));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((positionsResponse as any)?.code !== "0") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hmacErr = `OKX ${(positionsResponse as any)?.code}: ${(positionsResponse as any)?.msg}`;
+          positionsResponse = undefined;
+        }
+      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = err as any;
+        hmacErr = e?.response?.data?.msg || e?.message || "hmac failed";
+        console.warn("HMAC auth failed, trying onchainos CLI:", hmacErr);
+      }
+    }
+
+    if (!positionsResponse && cliAvailable) {
+      try {
+        source = "cli";
+        positionsResponse = normalize(await tryFetch(cliGetDefiPositions));
+      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = err as any;
+        console.error("onchainos CLI also failed:", e?.message);
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Both OKX HMAC and onchainos CLI failed",
+            hmacError: hmacErr,
+            cliError: e?.message,
+            detail: "Fix OKX passphrase in .env.local, or run `onchainos wallet login`",
+          },
+          { status: 502 }
+        );
+      }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const responseData = positionsResponse as any;
-    if (
-      responseData?.code !== "0" ||
-      !responseData?.data
-    ) {
-      console.error("OKX positions API returned non-zero code:", responseData?.code, responseData?.msg);
-      return NextResponse.json({
-        ok: true,
-        demo: true,
-        positions: getDemoPositions(),
-      });
+    if (responseData?.code !== "0" || !responseData?.data) {
+      console.error("Positions fetch failed:", responseData?.code, responseData?.msg);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "OKX returned error",
+          okxCode: responseData?.code,
+          okxMsg: responseData?.msg,
+        },
+        { status: 502 }
+      );
     }
 
     // Parse platform list from positions overview
@@ -187,12 +265,14 @@ export async function POST(req: NextRequest) {
       if (!wallet.walletIdPlatformList) continue;
       for (const walletEntry of wallet.walletIdPlatformList) {
         for (const platform of walletEntry.platformList || []) {
+          // Prefer numeric chainIndex, fall back to network name
           const chainList = (platform.networkBalanceList || []).map(
-            (n) => n.network
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (n: any) => String(n.chainIndex || n.network)
           );
           platforms.push({
             platformName: platform.platformName,
-            analysisPlatformId: platform.analysisPlatformId,
+            analysisPlatformId: String(platform.analysisPlatformId),
             chains: chainList,
           });
         }
@@ -202,41 +282,75 @@ export async function POST(req: NextRequest) {
     if (platforms.length === 0) {
       return NextResponse.json({
         ok: true,
+        source,
         positions: [],
       });
     }
 
-    // Step 2: Get position details for each platform (parallel with timeout)
-    const detailPromises = platforms.flatMap((platform) =>
-      // For each chain the platform is active on, fetch details
-      (platform.chains.length > 0 ? platform.chains : chainIds).map(
-        (chainId: string) => {
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout")), 10000)
-          );
-          const fetchPromise = getDefiPositionDetail(
-            address,
-            chainId,
-            platform.analysisPlatformId
-          );
-          return Promise.race([fetchPromise, timeoutPromise])
-            .then((result) => ({
-              status: "fulfilled" as const,
-              value: result,
-              platformName: platform.platformName,
-              chainId,
-            }))
-            .catch((err) => ({
-              status: "rejected" as const,
-              reason: err,
-              platformName: platform.platformName,
-              chainId,
-            }));
-        }
-      )
+    const fetchDetail: DetailApiLike =
+      source === "cli" ? cliGetDefiPositionDetail : getDefiPositionDetail;
+
+    // Build flat list of (platform, chain) jobs
+    const jobs = platforms.flatMap((platform) =>
+      (platform.chains.length > 0 ? platform.chains : chainIds).map((chainId: string) => ({
+        platform,
+        chainId,
+      }))
     );
 
-    const detailResults = await Promise.all(detailPromises);
+    // HMAC can do parallel. CLI rate-limits, so run sequential with retry/backoff.
+    type DetailResult =
+      | { status: "fulfilled"; value: unknown; platformName: string; chainId: string }
+      | { status: "rejected"; reason: unknown; platformName: string; chainId: string };
+
+    const runOne = async (
+      platform: { platformName: string; analysisPlatformId: string },
+      chainId: string
+    ): Promise<DetailResult> => {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 20000)
+      );
+      try {
+        const value = await Promise.race([
+          fetchDetail(address, chainId, platform.analysisPlatformId),
+          timeoutPromise,
+        ]);
+        return {
+          status: "fulfilled",
+          value,
+          platformName: platform.platformName,
+          chainId,
+        };
+      } catch (err) {
+        return {
+          status: "rejected",
+          reason: err,
+          platformName: platform.platformName,
+          chainId,
+        };
+      }
+    };
+
+    let detailResults: DetailResult[];
+    if (source === "cli") {
+      detailResults = [];
+      for (const { platform, chainId } of jobs) {
+        let r = await runOne(platform, chainId);
+        // One retry on rate-limit after a short backoff
+        if (
+          r.status === "rejected" &&
+          /rate limit/i.test(String((r.reason as Error)?.message || ""))
+        ) {
+          await new Promise((res) => setTimeout(res, 1500));
+          r = await runOne(platform, chainId);
+        }
+        detailResults.push(r);
+      }
+    } else {
+      detailResults = await Promise.all(
+        jobs.map(({ platform, chainId }) => runOne(platform, chainId))
+      );
+    }
 
     // Step 3: Parse detail results and score each position
     const scoredPositions: ScoredPosition[] = [];
@@ -251,7 +365,7 @@ export async function POST(req: NextRequest) {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const detailResponse = result.value as any;
+      const detailResponse = normalize(result.value) as any;
       if (detailResponse?.code !== "0" || !detailResponse?.data) continue;
 
       // data is an array of wallet detail entries
@@ -266,36 +380,83 @@ export async function POST(req: NextRequest) {
           [];
 
         for (const platformDetail of detailList) {
-          const investments = platformDetail?.investmentList || [];
+          // Legacy HMAC schema: platformDetail.investmentList[]
+          // CLI v6 schema:     platformDetail.networkHoldVoList[].investTokenBalanceVoList[]
+          //                    Each entry has .positionList[] with .assetsTokenList[]
+          type RawInvestment = Record<string, unknown>;
+          const investments: RawInvestment[] = [];
+
+          if (Array.isArray(platformDetail?.investmentList)) {
+            investments.push(...platformDetail.investmentList);
+          }
+          if (Array.isArray(platformDetail?.networkHoldVoList)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            for (const nh of platformDetail.networkHoldVoList as any[]) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              for (const inv of (nh.investTokenBalanceVoList || []) as any[]) {
+                investments.push({ ...inv, chainIndex: nh.chainIndex });
+              }
+            }
+          }
 
           for (const investment of investments) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const inv = investment as any;
+
+            // CLI: tokens are under positionList[].assetsTokenList[]
+            // HMAC: tokens are under tokenList[]
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const tokens: any[] = inv.tokenList
+              ? inv.tokenList
+              : (inv.positionList || []).flatMap(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (p: any) => p.assetsTokenList || []
+                );
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rewards: any[] = inv.rewardList
+              ? inv.rewardList
+              : inv.earnedTokenList
+                ? inv.earnedTokenList
+                : (inv.positionList || []).flatMap(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (p: any) => p.rewardList || p.availableRewards || []
+                  );
+
+            const investmentId = String(
+              inv.investmentId || inv.investmentKey || inv.positionList?.[0]?.investmentKey || ""
+            );
+            const investmentName = String(
+              inv.investmentName || inv.investName || ""
+            );
+
             const posDetail: PositionDetail = {
-              investmentId: String(investment.investmentId || ""),
-              investmentName: investment.investmentName || "",
-              investType: parseInt(investment.investType || "0"),
+              investmentId,
+              investmentName,
+              investType: parseInt(String(inv.investType || "0")),
               chainId: result.chainId,
               platformName: result.platformName,
-              platformId: platformDetail?.analysisPlatformId || "",
-              tokenList: (investment.tokenList || []).map(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (t: any) => ({
-                  tokenSymbol: t.tokenSymbol || "",
-                  tokenAddress: t.tokenAddress || "",
-                  coinAmount: t.coinAmount || "0",
-                  currencyAmount: t.currencyAmount || "0",
-                  tokenPrecision: parseInt(t.tokenPrecision || "18"),
-                })
-              ),
-              rewardList: (investment.rewardList || investment.earnedTokenList || []).map(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (r: any) => ({
-                  tokenSymbol: r.tokenSymbol || "",
-                  coinAmount: r.coinAmount || "0",
-                  currencyAmount: r.currencyAmount || "0",
-                })
-              ),
-              healthRate: investment.healthRate || undefined,
+              platformId: String(platformDetail?.analysisPlatformId || ""),
+              tokenList: tokens.map((t) => ({
+                tokenSymbol: t.tokenSymbol || t.symbol || t.tokenName || "",
+                tokenAddress: t.tokenAddress || "",
+                coinAmount: String(t.coinAmount || t.amount || "0"),
+                currencyAmount: String(t.currencyAmount || t.valueUsd || "0"),
+                tokenPrecision: parseInt(String(t.tokenPrecision || t.decimals || "18")),
+              })),
+              rewardList: rewards.map((r) => ({
+                tokenSymbol: r.tokenSymbol || r.symbol || "",
+                coinAmount: String(r.coinAmount || r.amount || "0"),
+                currencyAmount: String(r.currencyAmount || r.valueUsd || "0"),
+              })),
+              healthRate: inv.healthRate || undefined,
             };
+
+            // Skip empty positions (no tokens and no value)
+            const hasValue = posDetail.tokenList.some(
+              (t) => parseFloat(t.currencyAmount) > 0 || parseFloat(t.coinAmount) > 0
+            );
+            if (!hasValue) continue;
 
             const chainConfig = getChainById(parseInt(result.chainId));
             const chainName = chainConfig?.name || result.chainId;
@@ -310,17 +471,22 @@ export async function POST(req: NextRequest) {
     // Sort by healthScore ascending (worst positions first)
     scoredPositions.sort((a, b) => a.healthScore - b.healthScore);
 
+    // Optional LLM enhancement — Grok (xAI) or Groq (Llama). Falls back silently.
+    const enhanced = await enhanceWithAi(scoredPositions);
+
     return NextResponse.json({
       ok: true,
-      positions: scoredPositions,
+      source,
+      aiProvider: aiProviderName(),
+      positions: enhanced,
     });
   } catch (error) {
-    console.error("Scan error:", error);
-    // Critical fallback — always return demo data so the app works
-    return NextResponse.json({
-      ok: true,
-      demo: true,
-      positions: getDemoPositions(),
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const e = error as any;
+    console.error("Scan error:", e);
+    return NextResponse.json(
+      { ok: false, error: "Scan failed", detail: e?.message || String(e) },
+      { status: 500 }
+    );
   }
 }

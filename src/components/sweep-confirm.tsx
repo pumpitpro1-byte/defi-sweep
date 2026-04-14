@@ -72,13 +72,13 @@ export function SweepConfirm({ plan, onConfirm, onCancel }: SweepConfirmProps) {
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 rounded-[14px] text-[14px] font-semibold text-[#545454] bg-[#F5F5F5] hover:bg-[#E5E5E5] transition-colors tracking-[-0.28px]"
+            className="flex-1 px-6 py-3 rounded-full text-[14px] font-semibold text-[#222] bg-[#f2f2f2] hover:bg-[#e5e5e5] border border-[rgba(0,0,0,0.07)] transition-colors tracking-[-0.28px]"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-3 rounded-[14px] text-[14px] font-semibold text-white bg-[#6c6cff] hover:bg-[#5b5be6] border border-[rgba(0,0,0,0.1)] transition-colors tracking-[-0.28px]"
+            className="flex-1 px-6 py-3 rounded-full text-[14px] font-semibold text-white bg-[#6c6cff] hover:bg-[#5b5be6] border border-[rgba(0,0,0,0.1)] transition-colors tracking-[-0.28px]"
           >
             Confirm Sweep
           </button>

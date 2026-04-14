@@ -57,7 +57,7 @@ export interface ScoredPosition {
   chainLabel: string;
   investType: number;
   investTypeLabel: string;
-  tokens: { symbol: string; amount: string; valueUsd: string }[];
+  tokens: { symbol: string; amount: string; valueUsd: string; address?: string }[];
   totalValueUsd: number;
   healthScore: number;
   healthStatus: HealthStatus;

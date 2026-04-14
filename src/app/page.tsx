@@ -2,12 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
-import { useRouter } from "next/navigation";
 
-const APP_URL = "/dashboard";
+const APP_URL = "/app";
 
 /* ─── Helpers ─── */
 
@@ -40,40 +38,36 @@ function WalletIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-/* Connect Wallet CTA — opens RainbowKit modal with gradient styling */
-function ConnectWalletCTA({ size = "lg", label = "Connect wallet", showIcon = true }: { size?: "sm" | "lg"; label?: string; showIcon?: boolean }) {
+/* Launch App CTA — navigates to /app (empty dashboard with connect CTA) */
+function ConnectWalletCTA({ size = "lg", label = "Launch app", showIcon = false }: { size?: "sm" | "lg"; label?: string; showIcon?: boolean }) {
   return (
-    <ConnectButton.Custom>
-      {({ openConnectModal, mounted }) => (
-        <button
-          onClick={mounted ? openConnectModal : undefined}
-          className={`inline-block rounded-[16px] p-[3px] cursor-pointer`}
+    <Link
+      href={APP_URL}
+      className="inline-block rounded-[16px] p-[3px] cursor-pointer"
+      style={{
+        backgroundImage: "conic-gradient(from 90deg, #b461ca -8.65%, #b461ca 7.66%, #e77193 13.36%, #e77193 26.47%, #b461ca 49.16%, #e77193 74.52%, #b461ca 91.35%, #b461ca 107.66%)",
+      }}
+    >
+      <div
+        className="relative rounded-[16px] overflow-hidden"
+        style={{
+          backgroundImage: "radial-gradient(ellipse at center, #0c0c0c 18.27%, #171717 59.14%, #222222 100%)",
+        }}
+      >
+        <div className={`flex items-center justify-center gap-2 relative z-10 ${size === "lg" ? "px-6 py-3.5" : "px-5 py-2.5"}`}>
+          <span className={`font-semibold text-white tracking-[-0.36px] whitespace-nowrap ${size === "lg" ? "text-[18px]" : "text-[14px]"}`}>
+            {label}
+          </span>
+          {showIcon && <WalletIcon className={size === "lg" ? "w-5 h-5" : "w-4 h-4"} />}
+        </div>
+        <div
+          className="absolute inset-0 pointer-events-none rounded-[inherit]"
           style={{
-            backgroundImage: "conic-gradient(from 90deg, #b461ca -8.65%, #b461ca 7.66%, #e77193 13.36%, #e77193 26.47%, #b461ca 49.16%, #e77193 74.52%, #b461ca 91.35%, #b461ca 107.66%)",
+            boxShadow: "inset -4px 0 3px 0 rgba(255,255,255,0.1), inset 4px 0 3px 0 rgba(255,255,255,0.1), inset 0 4px 3px 0 rgba(255,255,255,0.1), inset 0 -4px 3px 0 rgba(255,255,255,0.1)",
           }}
-        >
-          <div
-            className="relative rounded-[16px] overflow-hidden"
-            style={{
-              backgroundImage: "radial-gradient(ellipse at center, #0c0c0c 18.27%, #171717 59.14%, #222222 100%)",
-            }}
-          >
-            <div className={`flex items-center justify-center gap-2 relative z-10 ${size === "lg" ? "px-6 py-3.5" : "px-5 py-2.5"}`}>
-              <span className={`font-semibold text-white tracking-[-0.36px] whitespace-nowrap ${size === "lg" ? "text-[18px]" : "text-[14px]"}`}>
-                {label}
-              </span>
-              {showIcon && <WalletIcon className={size === "lg" ? "w-5 h-5" : "w-4 h-4"} />}
-            </div>
-            <div
-              className="absolute inset-0 pointer-events-none rounded-[inherit]"
-              style={{
-                boxShadow: "inset -4px 0 3px 0 rgba(255,255,255,0.1), inset 4px 0 3px 0 rgba(255,255,255,0.1), inset 0 4px 3px 0 rgba(255,255,255,0.1), inset 0 -4px 3px 0 rgba(255,255,255,0.1)",
-              }}
-            />
-          </div>
-        </button>
-      )}
-    </ConnectButton.Custom>
+        />
+      </div>
+    </Link>
   );
 }
 
@@ -624,15 +618,6 @@ function Footer() {
 
 /* ─── Page ─── */
 export default function Home() {
-  const { isConnected } = useAccount();
-  const router = useRouter();
-
-  React.useEffect(() => {
-    if (isConnected) {
-      router.push("/dashboard");
-    }
-  }, [isConnected, router]);
-
   return (
     <div className="relative overflow-x-hidden">
       {/* Gradient background — centered behind hero, scrolls with page */}

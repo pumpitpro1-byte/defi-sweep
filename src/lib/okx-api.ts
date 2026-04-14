@@ -84,12 +84,12 @@ interface OkxResponse<T = unknown> {
   data: T;
 }
 
-// ─── DeFi Portfolio ──────────────────────────────────────────
+// ─── DeFi Portfolio (v6 — POST) ──────────────────────────────
 
 export async function getDefiPositions(address: string, chains: string[]) {
-  return okxGet<OkxResponse>("/api/v5/defi/user/asset-overview", {
+  return okxPost<OkxResponse>("/api/v6/defi/user/asset/platform/list", {
     address,
-    chainIds: chains.join(","),
+    chains: chains.join(","),
   });
 }
 
@@ -98,35 +98,33 @@ export async function getDefiPositionDetail(
   chain: string,
   platformId: string
 ) {
-  return okxGet<OkxResponse>("/api/v5/defi/user/asset-detail", {
+  return okxPost<OkxResponse>("/api/v6/defi/user/asset/platform/detail", {
     address,
     chainId: chain,
     analysisPlatformId: platformId,
   });
 }
 
-// ─── DeFi Product Discovery ─────────────────────────────────
+// ─── DeFi Product Discovery (v6) ─────────────────────────────
 
 export async function searchDefiProducts(
   token: string,
   chain?: string,
   platform?: string
 ) {
-  const params: Record<string, string> = {
-    tokenSymbol: token,
-  };
-  if (chain) params.chainId = chain;
-  if (platform) params.platformName = platform;
-  return okxGet<OkxResponse>("/api/v5/defi/explore/product/list", params);
+  const body: Record<string, unknown> = { tokenSymbol: token };
+  if (chain) body.chainId = chain;
+  if (platform) body.platformName = platform;
+  return okxPost<OkxResponse>("/api/v6/defi/product/search", body);
 }
 
 export async function getDefiProductDetail(investmentId: string) {
-  return okxGet<OkxResponse>("/api/v5/defi/explore/product/detail", {
+  return okxPost<OkxResponse>("/api/v6/defi/product/detail", {
     investmentId,
   });
 }
 
-// ─── DeFi Invest/Withdraw/Collect (calldata generation) ─────
+// ─── DeFi Invest/Withdraw/Collect — v6 transaction routes ────
 
 export async function getDefiInvestCalldata(params: {
   investmentId: string;
@@ -135,7 +133,7 @@ export async function getDefiInvestCalldata(params: {
   amount: string;
   chain: string;
 }) {
-  return okxPost<OkxResponse>("/api/v5/defi/invest/subscribe", {
+  return okxPost<OkxResponse>("/api/v6/defi/transaction/enter", {
     investmentId: params.investmentId,
     userWalletAddress: params.address,
     userInputList: [
@@ -155,7 +153,7 @@ export async function getDefiWithdrawCalldata(params: {
   ratio: string;
   platformId: string;
 }) {
-  return okxPost<OkxResponse>("/api/v5/defi/invest/redeem", {
+  return okxPost<OkxResponse>("/api/v6/defi/transaction/exit", {
     investmentId: params.investmentId,
     userWalletAddress: params.address,
     chainId: params.chain,
@@ -178,14 +176,14 @@ export async function getDefiCollectCalldata(params: {
   };
   if (params.investmentId) body.investmentId = params.investmentId;
   if (params.platformId) body.analysisPlatformId = params.platformId;
-  return okxPost<OkxResponse>("/api/v5/defi/invest/claim", body);
+  return okxPost<OkxResponse>("/api/v6/defi/transaction/claim", body);
 }
 
-// ─── Wallet Portfolio ────────────────────────────────────────
+// ─── Wallet Portfolio (v6) ───────────────────────────────────
 
 export async function getTokenBalances(address: string, chains: string[]) {
   return okxGet<OkxResponse>(
-    "/api/v5/wallet/asset/all-token-balances-by-address",
+    "/api/v6/dex/balance/all-token-balances-by-address",
     {
       address,
       chains: chains.join(","),
@@ -193,16 +191,16 @@ export async function getTokenBalances(address: string, chains: string[]) {
   );
 }
 
-// ─── Security ────────────────────────────────────────────────
+// ─── Security (v6) ───────────────────────────────────────────
 
 export async function scanToken(chainId: string, tokenAddress: string) {
-  return okxGet<OkxResponse>("/api/v5/dex/pre-transaction/scan-token", {
+  return okxGet<OkxResponse>("/api/v6/security/token-scan", {
     chainId,
     tokenAddress,
   });
 }
 
-// ─── DEX Swap ────────────────────────────────────────────────
+// ─── DEX Swap (v6) ───────────────────────────────────────────
 
 export async function getSwapQuote(params: {
   chainId: string;
@@ -211,7 +209,7 @@ export async function getSwapQuote(params: {
   amount: string;
   slippage?: string;
 }) {
-  return okxGet<OkxResponse>("/api/v5/dex/aggregator/quote", {
+  return okxGet<OkxResponse>("/api/v6/dex/aggregator/quote", {
     chainId: params.chainId,
     fromTokenAddress: params.fromTokenAddress,
     toTokenAddress: params.toTokenAddress,
@@ -228,7 +226,7 @@ export async function getSwapData(params: {
   userWalletAddress: string;
   slippage?: string;
 }) {
-  return okxGet<OkxResponse>("/api/v5/dex/aggregator/swap", {
+  return okxGet<OkxResponse>("/api/v6/dex/aggregator/swap", {
     chainId: params.chainId,
     fromTokenAddress: params.fromTokenAddress,
     toTokenAddress: params.toTokenAddress,

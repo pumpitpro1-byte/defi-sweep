@@ -2,6 +2,7 @@
 
 import { useAccount, useDisconnect, useBalance } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
+import { NetworkIcon } from "./web3-icons";
 
 interface WalletDropdownProps {
   isOpen: boolean;
@@ -23,6 +24,16 @@ export function WalletDropdown({ isOpen, onClose }: WalletDropdownProps) {
 
   const handleDisconnect = () => {
     disconnect();
+    onClose();
+  };
+
+  const handleLoadDemo = () => {
+    window.dispatchEvent(new CustomEvent("defi-sweeper:load-demo"));
+    onClose();
+  };
+
+  const handleScanAddress = () => {
+    window.dispatchEvent(new CustomEvent("defi-sweeper:scan-address"));
     onClose();
   };
 
@@ -79,11 +90,12 @@ export function WalletDropdown({ isOpen, onClose }: WalletDropdownProps) {
                 </p>
               )}
               {chain && (
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="w-[10px] h-[10px] rounded-full bg-[#5a8400]" />
+                <div className="flex items-center gap-1.5 mt-1">
+                  <NetworkIcon chain={String(chain.id)} className="w-4 h-4" />
                   <span className="text-[12px] font-medium text-[#222] tracking-[-0.24px]">
                     Connected to {chain.name}
                   </span>
+                  <span className="w-[8px] h-[8px] rounded-full bg-[#5a8400] ml-1" />
                 </div>
               )}
             </div>
@@ -124,6 +136,36 @@ export function WalletDropdown({ isOpen, onClose }: WalletDropdownProps) {
                   View on Explorer
                 </span>
               </a>
+
+              {/* Divider */}
+              <div className="border-t border-[#f0f0f0]" />
+
+              {/* Use demo data */}
+              <button
+                onClick={handleLoadDemo}
+                className="w-full flex items-center gap-3 p-2 rounded-[10px] hover:bg-[rgba(108,108,255,0.06)] transition-colors text-left"
+              >
+                <svg className="w-5 h-5 text-[#545454] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                </svg>
+                <span className="text-[14px] font-medium text-[#121212] tracking-[-0.28px] leading-[1.46]">
+                  Use demo data
+                </span>
+              </button>
+
+              {/* Spectator mode — scan another wallet */}
+              <button
+                onClick={handleScanAddress}
+                className="w-full flex items-center gap-3 p-2 rounded-[10px] hover:bg-[rgba(108,108,255,0.06)] transition-colors text-left"
+              >
+                <svg className="w-5 h-5 text-[#545454] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="text-[14px] font-medium text-[#121212] tracking-[-0.28px] leading-[1.46]">
+                  Spectator mode
+                </span>
+              </button>
 
               {/* Divider */}
               <div className="border-t border-[#f0f0f0]" />

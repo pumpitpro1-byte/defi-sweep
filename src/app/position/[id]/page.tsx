@@ -5,6 +5,7 @@ import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from "wa
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { HealthScore, HealthBadge } from "@/components/health-score";
+import { NetworkIcon, TokenPair } from "@/components/web3-icons";
 import { SweepConfirm } from "@/components/sweep-confirm";
 import { SweepSteps } from "@/components/sweep-steps";
 import { type ScoredPosition, type SweepPlan, type SweepStep } from "@/lib/types";
@@ -219,7 +220,7 @@ export default function PositionDetailPage() {
             It may have been removed from cache.
           </p>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/app")}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#6c6cff] hover:bg-[#5b5be6] transition-colors"
           >
             Back to Dashboard
@@ -343,7 +344,7 @@ export default function PositionDetailPage() {
     <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 space-y-6">
       {/* Back */}
       <button
-        onClick={() => router.push("/dashboard")}
+        onClick={() => router.push("/app")}
         className="flex items-center gap-2 text-sm text-[#545454] hover:text-[#121212] transition-colors"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -367,14 +368,18 @@ export default function PositionDetailPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{position.platformName}</h1>
-                <span className="px-2 py-0.5 rounded text-xs bg-[#F5F5F5] text-[#545454]">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs bg-[#F5F5F5] text-[#545454]">
+                  <NetworkIcon chain={position.chain} className="w-3.5 h-3.5" />
                   {position.chainLabel}
                 </span>
                 <HealthBadge status={position.healthStatus} />
               </div>
-              <p className="text-[#545454] mt-1">
-                {position.investTypeLabel} · {position.tokens.map((t) => t.symbol).join(" / ")}
-              </p>
+              <div className="text-[#545454] mt-1 flex items-center gap-2">
+                <span>{position.investTypeLabel}</span>
+                <span>·</span>
+                <TokenPair symbols={position.tokens.map((t) => ({ symbol: t.symbol, address: t.address }))} className="w-4 h-4" />
+                <span>{position.tokens.map((t) => t.symbol).join(" / ")}</span>
+              </div>
               <p className="text-2xl font-bold mt-2">
                 ${position.totalValueUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
@@ -443,7 +448,7 @@ export default function PositionDetailPage() {
           {/* Actions */}
           <div className="flex gap-3">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/app")}
               className="flex-1 px-4 py-3 rounded-xl text-sm text-[#545454] bg-[#F5F5F5] hover:bg-[#E5E5E5] transition-colors"
             >
               Dismiss
@@ -537,7 +542,7 @@ export default function PositionDetailPage() {
           </div>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/app")}
               className="px-6 py-3 rounded-xl text-sm font-semibold text-white bg-[#6c6cff] hover:bg-[#5b5be6] transition-colors"
             >
               Sweep Another Position

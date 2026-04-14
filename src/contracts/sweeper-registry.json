@@ -1,0 +1,182 @@
+{
+  "address": "0xb8a5a48c334eb2fa0836eaa676a35bf19247a46b",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "sourcePlatform",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "sourceChain",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "valueUsdScaled",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "healthScore",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "destination",
+          "type": "string"
+        }
+      ],
+      "name": "PositionSwept",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "sourcePlatforms",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "sourceChains",
+          "type": "string[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "valueUsdScaled",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "healthScores",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "destinations",
+          "type": "string[]"
+        }
+      ],
+      "name": "batchLogSweep",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "sourcePlatform",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "sourceChain",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "valueUsdScaled",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "healthScore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "destination",
+          "type": "string"
+        }
+      ],
+      "name": "logSweep",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSweeps",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalValueRecoveredScaled",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalValueRecoveredUsd",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userSweepCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "deployedBy": "0xfdEe6e34cAA5cCD6f7831a944F8f8cd0E520cb45",
+  "network": "xlayer",
+  "chainId": 196,
+  "txHash": "0x257cce16284b0166257cbaac858d5039618e5621c47f9066ebff6c1cdfbcabda"
+}

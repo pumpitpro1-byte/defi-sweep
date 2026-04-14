@@ -2,6 +2,7 @@
 
 import { type ScoredPosition } from "@/lib/types";
 import { HealthScore, HealthBadge } from "./health-score";
+import { NetworkIcon, TokenPair } from "./web3-icons";
 
 interface PositionCardProps {
   position: ScoredPosition;
@@ -31,7 +32,8 @@ export function PositionCard({ position, onSweep, onDetail }: PositionCardProps)
             <span className="font-semibold text-[#121212] truncate">
               {position.platformName}
             </span>
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#F5F5F5] text-[#545454]">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#F5F5F5] text-[#545454]">
+              <NetworkIcon chain={position.chain} className="w-3 h-3" />
               {position.chainLabel}
             </span>
             <HealthBadge status={position.healthStatus} />
@@ -39,7 +41,8 @@ export function PositionCard({ position, onSweep, onDetail }: PositionCardProps)
           <div className="flex items-center gap-2 text-sm text-[#545454]">
             <span>{position.investTypeLabel}</span>
             <span>·</span>
-            <span>
+            <span className="inline-flex items-center gap-1">
+              <TokenPair symbols={position.tokens.map((t) => ({ symbol: t.symbol, address: t.address }))} className="w-4 h-4" />
               {position.tokens.map((t) => t.symbol).join(" / ")}
             </span>
           </div>

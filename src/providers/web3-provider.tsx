@@ -1,7 +1,6 @@
 "use client";
 
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { mainnet, arbitrum, base, bsc, polygon } from "wagmi/chains";
+import { WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   RainbowKitProvider,
@@ -12,33 +11,29 @@ import {
 import "@rainbow-me/rainbowkit/styles.css";
 import { type Chain } from "viem";
 
-// X Layer chain definition
-const xlayer: Chain = {
-  id: 196,
-  name: "X Layer",
+// X Layer Testnet (1952) — where the SweeperRegistry is deployed
+const xlayerTestnet: Chain = {
+  id: 1952,
+  name: "X Layer Testnet",
   nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://rpc.xlayer.tech"] },
+    default: { http: ["https://testrpc.xlayer.tech"] },
   },
   blockExplorers: {
     default: {
       name: "OKX Explorer",
-      url: "https://www.okx.com/web3/explorer/xlayer",
+      url: "https://www.okx.com/web3/explorer/xlayer-test",
     },
   },
+  testnet: true,
 };
 
 const config = getDefaultConfig({
   appName: "DeFi Sweeper",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "00000000000000000000000000000000",
-  chains: [xlayer, mainnet, arbitrum, base, bsc, polygon],
+  chains: [xlayerTestnet],
   transports: {
-    [xlayer.id]: http("https://rpc.xlayer.tech"),
-    [mainnet.id]: http(),
-    [arbitrum.id]: http(),
-    [base.id]: http(),
-    [bsc.id]: http(),
-    [polygon.id]: http(),
+    [xlayerTestnet.id]: http("https://testrpc.xlayer.tech"),
   },
   ssr: true,
 });

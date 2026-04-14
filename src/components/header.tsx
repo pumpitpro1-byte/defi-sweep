@@ -5,13 +5,12 @@ import { useAccount } from "wagmi";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChainSwitcher } from "./chain-switcher";
 import { WalletDropdown } from "./wallet-dropdown";
+import { NetworkIcon } from "./web3-icons";
 
 export function Header() {
-  const { isConnected, address, chain } = useAccount();
+  const { isConnected, address } = useAccount();
   const router = useRouter();
-  const [chainModalOpen, setChainModalOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
 
   const truncated = address ? `${address.slice(0, 6)}...${address.slice(-3)}` : "";
@@ -44,20 +43,18 @@ export function Header() {
               </button>
             )}
 
-            {/* Chain icons */}
+            {/* X Layer indicator */}
             {isConnected && (
-              <button
-                onClick={() => setChainModalOpen(true)}
-                className="flex items-center pr-2.5"
-                title="Switch chain"
+              <div
+                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-[12px] border border-[rgba(0,0,0,0.07)]"
+                style={{ backgroundColor: "rgba(242,242,242,0.2)" }}
+                title="X Layer Testnet"
               >
-                <div className="w-6 h-6 rounded-full bg-[#4361ee] border border-[#1c1c1c] flex items-center justify-center text-white text-[9px] font-bold z-[2]">
-                  {chain?.name?.charAt(0) || "X"}
-                </div>
-                <div className="w-6 h-6 rounded-full bg-[#627EEA] border border-[#1c1c1c] flex items-center justify-center text-white text-[9px] font-bold -ml-2.5 z-[1]">
-                  E
-                </div>
-              </button>
+                <NetworkIcon chain="xlayer" className="w-5 h-5 flex-shrink-0" />
+                <span className="text-[13px] font-semibold text-[#121212] tracking-[-0.14px]">
+                  X Layer Testnet
+                </span>
+              </div>
             )}
 
             {/* Wallet button */}
@@ -100,7 +97,6 @@ export function Header() {
       </header>
 
       {/* Custom dropdowns */}
-      <ChainSwitcher isOpen={chainModalOpen} onClose={() => setChainModalOpen(false)} />
       <WalletDropdown isOpen={walletOpen} onClose={() => setWalletOpen(false)} />
     </>
   );
