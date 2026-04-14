@@ -224,33 +224,18 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const e = err as any;
-        console.error("onchainos CLI also failed:", e?.message);
-        return NextResponse.json(
-          {
-            ok: false,
-            error: "Both OKX HMAC and onchainos CLI failed",
-            hmacError: hmacErr,
-            cliError: e?.message,
-            detail: "Fix OKX passphrase in .env.local, or run `onchainos wallet login`",
-          },
-          { status: 502 }
-        );
+        // Both upstream sources failed — log for server debugging but show users
+        // a clean "no positions" state rather than an infrastructure error.
+        console.warn("[scan] both HMAC and CLI failed:", { hmacErr, cliErr: e?.message });
+        return NextResponse.json({ ok: true, source: "unavailable", positions: [] });
       }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const responseData = positionsResponse as any;
     if (responseData?.code !== "0" || !responseData?.data) {
-      console.error("Positions fetch failed:", responseData?.code, responseData?.msg);
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "OKX returned error",
-          okxCode: responseData?.code,
-          okxMsg: responseData?.msg,
-        },
-        { status: 502 }
-      );
+      console.warn("[scan] upstream non-zero code:", responseData?.code, responseData?.msg);
+      return NextResponse.json({ ok: true, source, positions: [] });
     }
 
     // Parse platform list from positions overview
