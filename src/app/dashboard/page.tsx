@@ -646,16 +646,16 @@ export default function DashboardPage() {
           <p className="text-[#545454] text-sm">{error}</p>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={scanPositions}
-              className="px-6 py-2.5 rounded-[32px] text-sm font-semibold bg-[#6c6cff] text-white hover:bg-[#5b5be6] transition-colors"
-            >
-              Retry
-            </button>
-            <button
               onClick={() => disconnect()}
-              className="px-6 py-2.5 rounded-[32px] text-sm font-semibold bg-[#f2f2f2] text-[#222] hover:bg-[#e5e5e5] transition-colors"
+              className="px-6 py-2.5 rounded-full text-sm font-semibold bg-[#6c6cff] text-white hover:bg-[#5b5be6] transition-colors"
             >
               Connect different wallet
+            </button>
+            <button
+              onClick={scanPositions}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold bg-[#f2f2f2] text-[#222] hover:bg-[#e5e5e5] border border-[rgba(0,0,0,0.07)] transition-colors"
+            >
+              Rescan
             </button>
           </div>
         </div>
@@ -683,13 +683,13 @@ export default function DashboardPage() {
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => disconnect()}
-              className="px-6 py-2.5 rounded-[32px] text-sm font-semibold bg-[#6c6cff] text-white hover:bg-[#5b5be6] transition-colors"
+              className="px-6 py-2.5 rounded-full text-sm font-semibold bg-[#6c6cff] text-white hover:bg-[#5b5be6] transition-colors"
             >
               Connect different wallet
             </button>
             <button
               onClick={scanPositions}
-              className="px-6 py-2.5 rounded-[32px] text-sm font-semibold bg-[#f2f2f2] text-[#222] hover:bg-[#e5e5e5] transition-colors"
+              className="px-6 py-2.5 rounded-full text-sm font-semibold bg-[#f2f2f2] text-[#222] hover:bg-[#e5e5e5] border border-[rgba(0,0,0,0.07)] transition-colors"
             >
               Rescan
             </button>
